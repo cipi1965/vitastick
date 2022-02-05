@@ -33,6 +33,13 @@ static SceUID usb_thread_id;
 static SceUID usb_event_flag_id;
 static int vitastick_driver_registered = 0;
 static int vitastick_driver_activated = 0;
+static struct SceUdcdDeviceRequest report;
+static struct SceUdcdDeviceRequest report_init;
+
+static void clear_request_unused(SceUdcdDeviceRequest* req)
+{
+	req->unused = NULL;
+}
 
 static int send_hid_report_desc(void)
 {
@@ -81,25 +88,29 @@ static int send_hid_report_init(uint8_t report_id)
 		.right_y = 0
 	};
 
-	static SceUdcdDeviceRequest req = {
-		.endpoint = &endpoints[0],
-		.data = &gamepad,
-		.size = sizeof(gamepad),
-		.isControlRequest = 0,
-		.onComplete = NULL,
-		.transmitted = 0,
-		.returnCode = 0,
-		.next = NULL,
-		.unused = NULL,
-		.physicalAddress = NULL
-	};
+	if (!report_init.unused) {
+		report_init.endpoint = &endpoints[0];
+		report_init.data = &gamepad;
+		report_init.size = sizeof(gamepad);
+		report_init.isControlRequest = 0;
+		report_init.onComplete = clear_request_unused;
+		report_init.transmitted = 0;
+		report_init.returnCode = 0;
+		report_init.next = NULL;
+		report_init.unused = &report_init;
+		report_init.physicalAddress = NULL;
 
-	return ksceUdcdReqSend(&req);
+		return ksceUdcdReqSend(&report_init);
+	}
+
+	return 0;
 }
 
 static void hid_report_on_complete(SceUdcdDeviceRequest *req)
 {
 	LOG("hid_report_on_complete\n");
+
+	clear_request_unused(req);
 
 	ksceKernelSetEventFlag(usb_event_flag_id, EVF_INT_REQ_COMPLETED);
 }
@@ -164,20 +175,22 @@ static int send_hid_report(uint8_t report_id)
 
 	ksceKernelCpuDcacheAndL2WritebackRange(&gamepad, sizeof(gamepad));
 
-	static SceUdcdDeviceRequest req = {
-		.endpoint = &endpoints[1],
-		.data = &gamepad,
-		.size = sizeof(gamepad),
-		.isControlRequest = 0,
-		.onComplete = hid_report_on_complete,
-		.transmitted = 0,
-		.returnCode = 0,
-		.next = NULL,
-		.unused = NULL,
-		.physicalAddress = NULL
-	};
+	if (!report.unused) {
+		report.endpoint = &endpoints[1];
+		report.data = &gamepad;
+		report.size = sizeof(gamepad);
+		report.isControlRequest = 0;
+		report.onComplete = hid_report_on_complete;
+		report.transmitted = 0;
+		report.returnCode = 0;
+		report.next = NULL;
+		report.unused = &report;
+		report.physicalAddress = NULL;
 
-	return TEST_CALL(ksceUdcdReqSend, &req);
+		return TEST_CALL(ksceUdcdReqSend, &report);
+	}
+	
+	return 0;
 }
 
 static int vitastick_udcd_process_request(int recipient, int arg, SceUdcdEP0DeviceRequest *req, void *user_data)
