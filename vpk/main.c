@@ -16,6 +16,7 @@ int main(int argc, char *argv[])
 
 	printf("vitastick by xerpi\n");
 
+	// vitastick_stop();
 	ret = vitastick_start();
 	if (ret >= 0) {
 		printf("vitastick started successfully!\n");
@@ -27,17 +28,17 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	scePowerSetArmClockFrequency(111);
-	scePowerSetBusClockFrequency(111);
-	scePowerSetGpuClockFrequency(111);
-	scePowerSetGpuXbarClockFrequency(111);
+	// scePowerSetArmClockFrequency(111);
+	// scePowerSetBusClockFrequency(111);
+	// scePowerSetGpuClockFrequency(111);
+	// scePowerSetGpuXbarClockFrequency(111);
 
 	wait_key_press("START + SELECT", SCE_CTRL_START | SCE_CTRL_SELECT);
 
-	scePowerSetArmClockFrequency(266);
-	scePowerSetBusClockFrequency(166);
-	scePowerSetGpuClockFrequency(166);
-	scePowerSetGpuXbarClockFrequency(111);
+	// scePowerSetArmClockFrequency(266);
+	// scePowerSetBusClockFrequency(166);
+	// scePowerSetGpuClockFrequency(166);
+	// scePowerSetGpuXbarClockFrequency(111);
 
 	vitastick_stop();
 

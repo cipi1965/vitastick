@@ -33,48 +33,50 @@ static SceUID usb_thread_id;
 static SceUID usb_event_flag_id;
 static int vitastick_driver_registered = 0;
 static int vitastick_driver_activated = 0;
-static struct SceUdcdDeviceRequest report;
-static struct SceUdcdDeviceRequest report_init;
+static struct SceUdcdDeviceRequest report_packet;
+static struct SceUdcdDeviceRequest report_init_packet;
+static struct SceUdcdDeviceRequest report_descriptor_packet;
+static struct SceUdcdDeviceRequest string_descriptor_report_packet;
 
 static void clear_request_unused(SceUdcdDeviceRequest* req)
 {
 	req->unused = NULL;
 }
 
-static int send_hid_report_desc(void)
+static void send_hid_report_desc(void)
 {
-	static SceUdcdDeviceRequest req = {
-		.endpoint = &endpoints[0],
-		.data = hid_report_descriptor,
-		.size = sizeof(hid_report_descriptor),
-		.isControlRequest = 0,
-		.onComplete = NULL,
-		.transmitted = 0,
-		.returnCode = 0,
-		.next = NULL,
-		.unused = NULL,
-		.physicalAddress = NULL
-	};
+	if (!report_descriptor_packet.unused) {
+		report_descriptor_packet.endpoint = &endpoints[0];
+		report_descriptor_packet.data = hid_report_descriptor;
+		report_descriptor_packet.size = sizeof(hid_report_descriptor);
+		report_descriptor_packet.isControlRequest = 0;
+		report_descriptor_packet.onComplete = clear_request_unused;
+		report_descriptor_packet.transmitted = 0;
+		report_descriptor_packet.returnCode = 0;
+		report_descriptor_packet.next = NULL;
+		report_descriptor_packet.unused = &report_descriptor_packet;
+		report_descriptor_packet.physicalAddress = NULL;
 
-	return ksceUdcdReqSend(&req);
+		ksceUdcdReqSend(&report_descriptor_packet);
+	}
 }
 
-static int send_string_descriptor(int index)
+static void send_string_descriptor(int index)
 {
-	static SceUdcdDeviceRequest req = {
-		.endpoint = &endpoints[0],
-		.data = &string_descriptors[0],
-		.size = sizeof(string_descriptors[0]),
-		.isControlRequest = 0,
-		.onComplete = NULL,
-		.transmitted = 0,
-		.returnCode = 0,
-		.next = NULL,
-		.unused = NULL,
-		.physicalAddress = NULL
-	};
+	if (!string_descriptor_report_packet.unused) {
+		string_descriptor_report_packet.endpoint = &endpoints[0];
+		string_descriptor_report_packet.data = &string_descriptors[0];
+		string_descriptor_report_packet.size = sizeof(string_descriptors[0]);
+		string_descriptor_report_packet.isControlRequest = 0;
+		string_descriptor_report_packet.onComplete = NULL;
+		string_descriptor_report_packet.transmitted = 0;
+		string_descriptor_report_packet.returnCode = 0;
+		string_descriptor_report_packet.next = NULL;
+		string_descriptor_report_packet.unused = NULL;
+		string_descriptor_report_packet.physicalAddress = NULL;
 
-	return ksceUdcdReqSend(&req);
+		ksceUdcdReqSend(&string_descriptor_report_packet);
+	}
 }
 
 static int send_hid_report_init(uint8_t report_id)
@@ -88,19 +90,19 @@ static int send_hid_report_init(uint8_t report_id)
 		.right_y = 0
 	};
 
-	if (!report_init.unused) {
-		report_init.endpoint = &endpoints[0];
-		report_init.data = &gamepad;
-		report_init.size = sizeof(gamepad);
-		report_init.isControlRequest = 0;
-		report_init.onComplete = clear_request_unused;
-		report_init.transmitted = 0;
-		report_init.returnCode = 0;
-		report_init.next = NULL;
-		report_init.unused = &report_init;
-		report_init.physicalAddress = NULL;
+	if (!report_init_packet.unused) {
+		report_init_packet.endpoint = &endpoints[0];
+		report_init_packet.data = &gamepad;
+		report_init_packet.size = sizeof(gamepad);
+		report_init_packet.isControlRequest = 0;
+		report_init_packet.onComplete = clear_request_unused;
+		report_init_packet.transmitted = 0;
+		report_init_packet.returnCode = 0;
+		report_init_packet.next = NULL;
+		report_init_packet.unused = &report_init_packet;
+		report_init_packet.physicalAddress = NULL;
 
-		return ksceUdcdReqSend(&report_init);
+		return ksceUdcdReqSend(&report_init_packet);
 	}
 
 	return 0;
@@ -175,19 +177,19 @@ static int send_hid_report(uint8_t report_id)
 
 	ksceKernelCpuDcacheAndL2WritebackRange(&gamepad, sizeof(gamepad));
 
-	if (!report.unused) {
-		report.endpoint = &endpoints[1];
-		report.data = &gamepad;
-		report.size = sizeof(gamepad);
-		report.isControlRequest = 0;
-		report.onComplete = hid_report_on_complete;
-		report.transmitted = 0;
-		report.returnCode = 0;
-		report.next = NULL;
-		report.unused = &report;
-		report.physicalAddress = NULL;
+	if (!report_packet.unused) {
+		report_packet.endpoint = &endpoints[1];
+		report_packet.data = &gamepad;
+		report_packet.size = sizeof(gamepad);
+		report_packet.isControlRequest = 0;
+		report_packet.onComplete = hid_report_on_complete;
+		report_packet.transmitted = 0;
+		report_packet.returnCode = 0;
+		report_packet.next = NULL;
+		report_packet.unused = &report_packet;
+		report_packet.physicalAddress = NULL;
 
-		return TEST_CALL(ksceUdcdReqSend, &report);
+		return TEST_CALL(ksceUdcdReqSend, &report_packet);
 	}
 	
 	return 0;
