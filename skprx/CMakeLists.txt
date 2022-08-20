@@ -40,6 +40,6 @@ vita_create_self(${PROJECT_NAME}.skprx ${PROJECT_NAME} CONFIG ${PROJECT_NAME}.ym
 vita_create_stubs(stubs ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/${PROJECT_NAME}.yml KERNEL)
 
 add_custom_target(send
-	COMMAND curl -T ${PROJECT_NAME}.skprx ftp://$(PSVITAIP):1337/ux0:/tai/
+	COMMAND curl -T ${PROJECT_NAME}.skprx ftp://$(PSVITAIP):1337/ur0:/tai/
 	DEPENDS ${PROJECT_NAME}.skprx
 )
