@@ -160,10 +160,10 @@ static void fill_gamepad_report(const SceCtrlData *pad, struct gamepad_report_t 
 	if (pad->buttons & SCE_CTRL_LEFT)
 		gamepad->buttons |= 1 << 15;
 
-	gamepad->left_x = (int8_t)pad->lx - 128;
-	gamepad->left_y = (int8_t)pad->ly - 128;
-	gamepad->right_x = (int8_t)pad->rx - 128;
-	gamepad->right_y = (int8_t)pad->ry - 128;
+	gamepad->left_x = (int8_t)(pad->lx - 128);
+	gamepad->left_y = (int8_t)(pad->ly - 128);
+	gamepad->right_x = (int8_t)(pad->rx - 128);
+	gamepad->right_y = (int8_t)(pad->ry - 128);
 }
 
 static int send_hid_report(uint8_t report_id)

@@ -18,7 +18,7 @@ unsigned char hid_report_descriptor[] __attribute__ ((aligned(64))) = {
 	0x09, 0x31,		//     Usage (Y)
 	0x09, 0x32,		//     Usage (Z)
 	0x09, 0x33,		//     Usage (Rx)
-	0x15, 0x81,		//     Logical Minimum (-127)
+	0x15, 0x80,		//     Logical Minimum (-127)
 	0x25, 0x7F,		//     Logical Maximum (127)
 	0x75, 0x08,		//     Report Size (8)
 	0x95, 0x04,		//     Report Count (4)
