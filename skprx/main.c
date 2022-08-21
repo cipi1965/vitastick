@@ -21,6 +21,7 @@ struct gamepad_report_t {
 	int8_t left_y;
 	int8_t right_x;
 	int8_t right_y;
+	uint8_t hat_switch;
 } __attribute__((packed));
 
 #define EVF_CONNECTED		(1 << 0)
@@ -28,6 +29,16 @@ struct gamepad_report_t {
 #define EVF_EXIT		(1 << 2)
 #define EVF_INT_REQ_COMPLETED	(1 << 3)
 #define EVF_ALL_MASK		(EVF_INT_REQ_COMPLETED | (EVF_INT_REQ_COMPLETED - 1))
+
+#define HATSWITCH_UP            0x00
+#define HATSWITCH_UPRIGHT       0x01
+#define HATSWITCH_RIGHT         0x02
+#define HATSWITCH_DOWNRIGHT     0x03
+#define HATSWITCH_DOWN          0x04
+#define HATSWITCH_DOWNLEFT      0x05
+#define HATSWITCH_LEFT          0x06
+#define HATSWITCH_UPLEFT        0x07
+#define HATSWITCH_NONE          0x0F
 
 static SceUID usb_thread_id;
 static SceUID usb_event_flag_id;
@@ -43,8 +54,7 @@ static void clear_request_unused(SceUdcdDeviceRequest* req)
 	req->unused = NULL;
 }
 
-static void send_hid_report_desc(void)
-{
+static void send_hid_report_desc(void){
 	if (!report_descriptor_packet.unused) {
 		report_descriptor_packet.endpoint = &endpoints[0];
 		report_descriptor_packet.data = hid_report_descriptor;
@@ -121,6 +131,7 @@ static void fill_gamepad_report(const SceCtrlData *pad, struct gamepad_report_t 
 {
 	gamepad->report_id = 1;
 	gamepad->buttons = 0;
+	gamepad->hat_switch = HATSWITCH_NONE;
 
 	if (pad->buttons & SCE_CTRL_SQUARE)
 		gamepad->buttons |= 1 << 0;
@@ -164,21 +175,36 @@ static void fill_gamepad_report(const SceCtrlData *pad, struct gamepad_report_t 
 	gamepad->left_y = (int8_t)(pad->ly - 128);
 	gamepad->right_x = (int8_t)(pad->rx - 128);
 	gamepad->right_y = (int8_t)(pad->ry - 128);
+
+	if (pad->buttons & SCE_CTRL_UP && pad->buttons & SCE_CTRL_RIGHT)
+		gamepad->hat_switch = HATSWITCH_UPRIGHT;
+	else if (pad->buttons & SCE_CTRL_UP && pad->buttons & SCE_CTRL_LEFT)
+		gamepad->hat_switch = HATSWITCH_UPLEFT;
+	else if (pad->buttons & SCE_CTRL_DOWN && pad->buttons & SCE_CTRL_RIGHT)
+		gamepad->hat_switch = HATSWITCH_DOWNRIGHT;
+	else if (pad->buttons & SCE_CTRL_DOWN && pad->buttons & SCE_CTRL_LEFT)
+		gamepad->hat_switch = HATSWITCH_DOWNLEFT;
+	else if (pad->buttons & SCE_CTRL_UP)
+		gamepad->hat_switch = HATSWITCH_UP;
+	else if (pad->buttons & SCE_CTRL_DOWN)
+		gamepad->hat_switch = HATSWITCH_DOWN;
+	else if (pad->buttons & SCE_CTRL_RIGHT)
+		gamepad->hat_switch = HATSWITCH_RIGHT;
+	else if (pad->buttons & SCE_CTRL_LEFT)
+		gamepad->hat_switch = HATSWITCH_LEFT;
 }
 
 static int send_hid_report(uint8_t report_id)
 {
 	static struct gamepad_report_t gamepad __attribute__((aligned(64))) = { 0 };
 	SceCtrlData pad;
-
 	ksceCtrlPeekBufferPositive(0, &pad, 1);
 
 	fill_gamepad_report(&pad, &gamepad);
 
 	ksceKernelCpuDcacheAndL2WritebackRange(&gamepad, sizeof(gamepad));
 
-	if (!report_packet.unused) {
-		report_packet.endpoint = &endpoints[1];
+	if (!report_packet.unused) {		report_packet.endpoint = &endpoints[1];
 		report_packet.data = &gamepad;
 		report_packet.size = sizeof(gamepad);
 		report_packet.isControlRequest = 0;

@@ -23,6 +23,13 @@ unsigned char hid_report_descriptor[] __attribute__ ((aligned(64))) = {
 	0x75, 0x08,		//     Report Size (8)
 	0x95, 0x04,		//     Report Count (4)
 	0x81, 0x02,		//     Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+	0x05, 0x01,		//     Usage Page (Generic Desktop Ctrls)
+	0x09, 0x39,		//     Usage (Hat Switch)
+	0x15, 0x00,		//     Logical Minimum (0)
+	0x25, 0x07,		//     Logical Maximum (7)
+	0x75, 0x08,		//     Report Size (8)
+	0x95, 0x01,		//     Report Count (1)
+	0x81, 0x02,		//     Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
 	0xC0,			//   End Collection
 	0xC0,			// End Collection
 };
