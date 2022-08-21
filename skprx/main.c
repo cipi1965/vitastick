@@ -166,6 +166,9 @@ static void fill_gamepad_report(const SceCtrlData *pad, struct gamepad_report_t 
 	if (pad->buttons & SCE_CTRL_R3 || r3)
 		gamepad->buttons |= 1 << 11;
 
+	if (pad->buttons & SCE_CTRL_PSBUTTON)
+		gamepad->buttons |= 1 << 12;
+
 	gamepad->left_x = (int8_t)(pad->lx - 128);
 	gamepad->left_y = (int8_t)(pad->ly - 128);
 	gamepad->right_x = (int8_t)(pad->rx - 128);

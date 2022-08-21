@@ -44,6 +44,7 @@ target_link_libraries(${SHORT_NAME}
 	SceCtrl_stub
 	ScePower_stub
 	SceTouch_stub
+	SceShellSvc_stub
 )
 
 vita_create_self(${SHORT_NAME}.self ${SHORT_NAME})

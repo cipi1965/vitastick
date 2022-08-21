@@ -2,6 +2,7 @@
 #include <psp2/ctrl.h>
 #include <psp2/power.h>
 #include <psp2/touch.h>
+#include <psp2/shellutil.h>
 #include "vitastick_uapi.h"
 #include "debugScreen.h"
 
@@ -29,12 +30,18 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
+	sceShellUtilInitEvents(0);
+
+	sceShellUtilLock(SCE_SHELL_UTIL_LOCK_TYPE_USB_CONNECTION | SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN_2);
+
 	// scePowerSetArmClockFrequency(111);
 	// scePowerSetBusClockFrequency(111);
 	// scePowerSetGpuClockFrequency(111);
 	// scePowerSetGpuXbarClockFrequency(111);
 
 	wait_key_press("START + SELECT", SCE_CTRL_START | SCE_CTRL_SELECT);
+
+	sceShellUtilLock(SCE_SHELL_UTIL_LOCK_TYPE_USB_CONNECTION | SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN_2);
 
 	// scePowerSetArmClockFrequency(266);
 	// scePowerSetBusClockFrequency(166);
