@@ -24,6 +24,7 @@ endif(RELEASE)
 add_executable(${PROJECT_NAME}
 	main.c
 	log.c
+	power.c
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -33,6 +34,7 @@ target_link_libraries(${PROJECT_NAME}
 	SceCtrlForDriver_stub
 	SceUdcdForDriver_stub
 	SceIofilemgrForDriver_stub
+	SceKernelSuspendForDriver_stub
 )
 
 vita_create_self(${PROJECT_NAME}.skprx ${PROJECT_NAME} CONFIG ${PROJECT_NAME}.yml UNSAFE)

@@ -10,9 +10,10 @@
 #include "uapi/vitastick_uapi.h"
 #include "usb_descriptors.h"
 #include "log.h"
+#include "power.h"
 
 #define VITASTICK_DRIVER_NAME	"VITASTICK"
-#define VITASTICK_USB_PID	0x1337
+#define VITASTICK_USB_PID	0x028E
 
 struct gamepad_report_t {
 	uint8_t report_id;
@@ -427,6 +428,8 @@ int vitastick_start(void)
 
 	LOG("vitastick_start\n");
 
+	powerLock();
+
 	if (!vitastick_driver_registered) {
 		ret = VITASTICK_ERROR_DRIVER_NOT_REGISTERED;
 		goto err;
@@ -485,6 +488,8 @@ int vitastick_stop(void)
 
 	ENTER_SYSCALL(state);
 
+	powerUnlock();
+
 	if (!vitastick_driver_activated) {
 		EXIT_SYSCALL(state);
 		return VITASTICK_ERROR_DRIVER_NOT_ACTIVATED;
@@ -516,6 +521,8 @@ int module_start(SceSize argc, const void *args)
 	log_reset();
 
 	LOG("vitastick by xerpi\n");
+
+	initPowerTickThread();
 
 	usb_thread_id = ksceKernelCreateThread("vitastick_usb_thread", usb_thread,
 					       0x3C, 0x1000, 0, 0x10000, 0);
