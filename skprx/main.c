@@ -48,13 +48,15 @@ static struct SceUdcdDeviceRequest report_packet;
 static struct SceUdcdDeviceRequest report_init_packet;
 static struct SceUdcdDeviceRequest report_descriptor_packet;
 static struct SceUdcdDeviceRequest string_descriptor_report_packet;
+uint8_t l2, r2, l3, r3;
 
 static void clear_request_unused(SceUdcdDeviceRequest* req)
 {
 	req->unused = NULL;
 }
 
-static void send_hid_report_desc(void){
+static void send_hid_report_desc(void)
+{
 	if (!report_descriptor_packet.unused) {
 		report_descriptor_packet.endpoint = &endpoints[0];
 		report_descriptor_packet.data = hid_report_descriptor;
@@ -133,43 +135,36 @@ static void fill_gamepad_report(const SceCtrlData *pad, struct gamepad_report_t 
 	gamepad->buttons = 0;
 	gamepad->hat_switch = HATSWITCH_NONE;
 
-	if (pad->buttons & SCE_CTRL_SQUARE)
-		gamepad->buttons |= 1 << 0;
 	if (pad->buttons & SCE_CTRL_CROSS)
-		gamepad->buttons |= 1 << 1;
+		gamepad->buttons |= 1 << 0;
 	if (pad->buttons & SCE_CTRL_CIRCLE)
-		gamepad->buttons |= 1 << 2;
+		gamepad->buttons |= 1 << 1;
 	if (pad->buttons & SCE_CTRL_TRIANGLE)
 		gamepad->buttons |= 1 << 3;
+	if (pad->buttons & SCE_CTRL_SQUARE)
+		gamepad->buttons |= 1 << 2;
 
-	if (pad->buttons & SCE_CTRL_LTRIGGER)
+	if (pad->buttons & SCE_CTRL_LTRIGGER
+		|| pad->buttons & SCE_CTRL_L1)
 		gamepad->buttons |= 1 << 4;
-	if (pad->buttons & SCE_CTRL_RTRIGGER)
+	if (pad->buttons & SCE_CTRL_RTRIGGER
+		|| pad->buttons & SCE_CTRL_R1)
 		gamepad->buttons |= 1 << 5;
 
-	if (pad->buttons & SCE_CTRL_L1)
-		gamepad->buttons |= 1 << 6;
-	if (pad->buttons & SCE_CTRL_R1)
-		gamepad->buttons |= 1 << 7;
+	if (l2)
+ 		gamepad->buttons |= 1 << 6;
+ 	if (r2)
+ 		gamepad->buttons |= 1 << 7;
 
 	if (pad->buttons & SCE_CTRL_SELECT)
 		gamepad->buttons |= 1 << 8;
 	if (pad->buttons & SCE_CTRL_START)
 		gamepad->buttons |= 1 << 9;
 
-	if (pad->buttons & SCE_CTRL_L3)
+	if (pad->buttons & SCE_CTRL_L3 || l3)
 		gamepad->buttons |= 1 << 10;
-	if (pad->buttons & SCE_CTRL_R3)
+	if (pad->buttons & SCE_CTRL_R3 || r3)
 		gamepad->buttons |= 1 << 11;
-
-	if (pad->buttons & SCE_CTRL_UP)
-		gamepad->buttons |= 1 << 12;
-	if (pad->buttons & SCE_CTRL_DOWN)
-		gamepad->buttons |= 1 << 13;
-	if (pad->buttons & SCE_CTRL_RIGHT)
-		gamepad->buttons |= 1 << 14;
-	if (pad->buttons & SCE_CTRL_LEFT)
-		gamepad->buttons |= 1 << 15;
 
 	gamepad->left_x = (int8_t)(pad->lx - 128);
 	gamepad->left_y = (int8_t)(pad->ly - 128);
@@ -204,7 +199,8 @@ static int send_hid_report(uint8_t report_id)
 
 	ksceKernelCpuDcacheAndL2WritebackRange(&gamepad, sizeof(gamepad));
 
-	if (!report_packet.unused) {		report_packet.endpoint = &endpoints[1];
+	if (!report_packet.unused) {
+		report_packet.endpoint = &endpoints[1];
 		report_packet.data = &gamepad;
 		report_packet.size = sizeof(gamepad);
 		report_packet.isControlRequest = 0;
@@ -220,7 +216,6 @@ static int send_hid_report(uint8_t report_id)
 	
 	return 0;
 }
-
 static int vitastick_udcd_process_request(int recipient, int arg, SceUdcdEP0DeviceRequest *req, void *user_data)
 {
 	LOG("usb_driver_process_request\n");
@@ -579,4 +574,20 @@ int module_stop(SceSize argc, const void *args)
 	log_flush();
 
 	return SCE_KERNEL_STOP_SUCCESS;
+}
+
+int upload_trigger_state(uint8_t triggers)
+{
+	unsigned long state;
+	int ret;
+
+	ENTER_SYSCALL(state);
+
+	l2 = triggers & (1 << CTRL_L2);
+	r2 = triggers & (1 << CTRL_R2);
+	l3 = triggers & (1 << CTRL_L3);
+	r3 = triggers & (1 << CTRL_R3);
+
+	EXIT_SYSCALL(state);
+	return 0;
 }
