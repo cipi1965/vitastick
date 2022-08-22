@@ -30,6 +30,13 @@ unsigned char hid_report_descriptor[] __attribute__ ((aligned(64))) = {
 	0x75, 0x08,		//     Report Size (8)
 	0x95, 0x01,		//     Report Count (1)
 	0x81, 0x02,		//     Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+	0x05, 0x06,		//   Usage Page (Generic Device Ctrls)
+	0x09, 0x20,		//   Usage (Battery Strength)
+	0x15, 0x00,		//   Logical Minimum (0)
+	0x25, 0x64,		//   Logical Maximum (100)
+	0x75, 0x08,		//   Report Size (8)
+	0x95, 0x01,		//   Report Count (1)
+	0x81, 0x02,		//   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
 	0xC0,			//   End Collection
 	0xC0,			// End Collection
 };

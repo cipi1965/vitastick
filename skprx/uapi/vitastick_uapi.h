@@ -17,6 +17,7 @@ extern "C" {
 int vitastick_start(void);
 int vitastick_stop(void);
 int upload_trigger_state(uint8_t triggers);
+int upload_battery_strength(uint8_t strength);
 
 #ifdef __cplusplus
 }

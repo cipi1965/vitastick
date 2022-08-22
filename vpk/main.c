@@ -53,6 +53,10 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+uint8_t getBatteryStrength() {
+    return scePowerGetBatteryLifePercent();
+}
+
 void wait_key_press(const char *key_desc, unsigned int key_mask)
 {
 	SceCtrlData pad;
@@ -87,6 +91,7 @@ void wait_key_press(const char *key_desc, unsigned int key_mask)
  				triggers |= (1 << CTRL_R3);
  		}
 
+		upload_battery_strength(getBatteryStrength());
  		upload_trigger_state(triggers);
 
 		sceCtrlReadBufferPositive(0, &pad, 1);

@@ -23,6 +23,7 @@ struct gamepad_report_t {
 	int8_t right_x;
 	int8_t right_y;
 	uint8_t hat_switch;
+	uint8_t battery_strength;
 } __attribute__((packed));
 
 #define EVF_CONNECTED		(1 << 0)
@@ -50,6 +51,7 @@ static struct SceUdcdDeviceRequest report_init_packet;
 static struct SceUdcdDeviceRequest report_descriptor_packet;
 static struct SceUdcdDeviceRequest string_descriptor_report_packet;
 uint8_t l2, r2, l3, r3;
+uint8_t battery_strength;
 
 static void clear_request_unused(SceUdcdDeviceRequest* req)
 {
@@ -135,6 +137,7 @@ static void fill_gamepad_report(const SceCtrlData *pad, struct gamepad_report_t 
 	gamepad->report_id = 1;
 	gamepad->buttons = 0;
 	gamepad->hat_switch = HATSWITCH_NONE;
+	gamepad->battery_strength = battery_strength;
 
 	if (pad->buttons & SCE_CTRL_CROSS)
 		gamepad->buttons |= 1 << 0;
@@ -597,6 +600,19 @@ int upload_trigger_state(uint8_t triggers)
 	r2 = triggers & (1 << CTRL_R2);
 	l3 = triggers & (1 << CTRL_L3);
 	r3 = triggers & (1 << CTRL_R3);
+
+	EXIT_SYSCALL(state);
+	return 0;
+}
+
+int upload_battery_strength(uint8_t strength)
+{
+	unsigned long state;
+	int ret;
+
+	ENTER_SYSCALL(state);
+
+	battery_strength = strength;
 
 	EXIT_SYSCALL(state);
 	return 0;
